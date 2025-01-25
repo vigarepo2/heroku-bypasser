@@ -506,7 +506,7 @@ HTML_TEMPLATE = '''
 </html>
 '''
 
-# Backend Logic (Same as previous)
+# Backend Logic
 async def parseX(data, start, end):
     try:
         star = data.index(start) + len(start)
