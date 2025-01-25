@@ -27,6 +27,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Main page template
 HTML_TEMPLATE = '''
 <!DOCTYPE html>
 <html lang="en">
@@ -36,6 +37,7 @@ HTML_TEMPLATE = '''
     <title>CC Checker Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        /* Your existing CSS styles remain the same */
         :root {
             --primary-color: #6366f1;
             --primary-hover: #4f46e5;
@@ -166,15 +168,6 @@ HTML_TEMPLATE = '''
             background: #ca8a04;
         }
 
-        .settings-panel {
-            display: none;
-            background: #f1f5f9;
-            padding: 1.5rem;
-            border-radius: 0.75rem;
-            margin: 1.5rem 0;
-            border: 1px solid var(--border);
-        }
-
         .result-card {
             background: var(--card-bg);
             padding: 1.25rem;
@@ -301,50 +294,8 @@ HTML_TEMPLATE = '''
 
         <div class="btn-group">
             <button class="btn btn-primary" onclick="submitForm()">🚀 Start Checking</button>
-            <button class="btn btn-secondary" onclick="toggleSettings()">⚙️ Settings</button>
+            <button class="btn btn-secondary" onclick="window.location.href='/settings'">⚙️ Settings</button>
             <button class="btn btn-warning" onclick="clearNonSuccess()">🧹 Clear Non-Live</button>
-        </div>
-
-        <div class="settings-panel" id="settingsPanel">
-            <div class="grid">
-                <div class="input-group">
-                    <label>API Key (Required)</label>
-                    <input type="text" id="api_key" placeholder="Enter API key" required>
-                </div>
-                <div class="input-group">
-                    <label>Proxy (Optional)</label>
-                    <input type="text" id="proxy" placeholder="host:port:user:pass">
-                </div>
-                <div class="input-group">
-                    <label>First Name</label>
-                    <input type="text" id="first_name" value="John">
-                </div>
-                <div class="input-group">
-                    <label>Last Name</label>
-                    <input type="text" id="last_name" value="Wick">
-                </div>
-                <div class="input-group">
-                    <label>Street Address</label>
-                    <input type="text" id="line1" value="2758 Cemetery Street">
-                </div>
-                <div class="input-group">
-                    <label>City</label>
-                    <input type="text" id="city" value="New York">
-                </div>
-                <div class="input-group">
-                    <label>State</label>
-                    <input type="text" id="state" value="NY">
-                </div>
-                <div class="input-group">
-                    <label>ZIP Code</label>
-                    <input type="text" id="postal_code" value="10080">
-                </div>
-                <div class="input-group">
-                    <label>Country</label>
-                    <input type="text" id="country" value="US">
-                </div>
-            </div>
-            <button class="btn btn-primary" onclick="saveSettings()">💾 Save Settings</button>
         </div>
 
         <div class="loader" id="loader"></div>
@@ -352,51 +303,26 @@ HTML_TEMPLATE = '''
     </div>
 
     <script>
-        let settings = {};
+        let settings = {
+            api_key: 'HRKU-dbedf9a3-6946-4206-a197-be6cf5766a40',
+            proxy: '',
+            first_name: 'John',
+            last_name: 'Wick',
+            line1: '2758 Cemetery Street',
+            city: 'New York',
+            state: 'NY',
+            postal_code: '10080',
+            country: 'US'
+        };
         let stats = { total: 0, live: 0, decline: 0 };
 
         function loadSettings() {
             const savedSettings = localStorage.getItem('settings');
             if (savedSettings) {
                 settings = JSON.parse(savedSettings);
-                for (const [key, value] of Object.entries(settings)) {
-                    const element = document.getElementById(key);
-                    if (element) element.value = value;
-                }
-            }
-        }
-
-        function toggleSettings() {
-            const panel = document.getElementById('settingsPanel');
-            if (panel.style.display === 'none' || !panel.style.display) {
-                panel.style.display = 'block';
             } else {
-                panel.style.display = 'none';
+                localStorage.setItem('settings', JSON.stringify(settings));
             }
-        }
-
-        function saveSettings() {
-            const settingsData = {
-                api_key: document.getElementById('api_key').value.trim(),
-                proxy: document.getElementById('proxy').value.trim(),
-                first_name: document.getElementById('first_name').value.trim(),
-                last_name: document.getElementById('last_name').value.trim(),
-                line1: document.getElementById('line1').value.trim(),
-                city: document.getElementById('city').value.trim(),
-                state: document.getElementById('state').value.trim(),
-                postal_code: document.getElementById('postal_code').value.trim(),
-                country: document.getElementById('country').value.trim()
-            };
-
-            if (!settingsData.api_key) {
-                alert('API key is required!');
-                return;
-            }
-
-            localStorage.setItem('settings', JSON.stringify(settingsData));
-            settings = settingsData;
-            alert('Settings saved successfully!');
-            toggleSettings();
         }
 
         function updateStats() {
@@ -444,12 +370,6 @@ HTML_TEMPLATE = '''
         }
 
         async function submitForm() {
-            if (!settings.api_key) {
-                alert('Please configure settings with API key first!');
-                toggleSettings();
-                return;
-            }
-
             const ccs = document.getElementById('ccs').value.trim().split('\n').filter(cc => cc.trim());
             if (ccs.length === 0 || ccs.length > 50) {
                 alert('Please enter between 1 and 50 credit cards.');
@@ -479,6 +399,106 @@ HTML_TEMPLATE = '''
                 }
             }
             hideLoader();
+        }
+
+        document.addEventListener('DOMContentLoaded', loadSettings);
+    </script>
+</body>
+</html>
+'''
+
+# Settings page template
+SETTINGS_TEMPLATE = '''
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - CC Checker Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Same CSS styles as main page */
+        /* ... */
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚙️ Settings</h1>
+        
+        <div class="grid">
+            <div class="input-group">
+                <label>API Key (Required)</label>
+                <input type="text" id="api_key" placeholder="Enter API key" value="HRKU-dbedf9a3-6946-4206-a197-be6cf5766a40" required>
+            </div>
+            <div class="input-group">
+                <label>Proxy (Optional)</label>
+                <input type="text" id="proxy" placeholder="host:port:user:pass">
+            </div>
+            <div class="input-group">
+                <label>First Name</label>
+                <input type="text" id="first_name" value="John">
+            </div>
+            <div class="input-group">
+                <label>Last Name</label>
+                <input type="text" id="last_name" value="Wick">
+            </div>
+            <div class="input-group">
+                <label>Street Address</label>
+                <input type="text" id="line1" value="2758 Cemetery Street">
+            </div>
+            <div class="input-group">
+                <label>City</label>
+                <input type="text" id="city" value="New York">
+            </div>
+            <div class="input-group">
+                <label>State</label>
+                <input type="text" id="state" value="NY">
+            </div>
+            <div class="input-group">
+                <label>ZIP Code</label>
+                <input type="text" id="postal_code" value="10080">
+            </div>
+            <div class="input-group">
+                <label>Country</label>
+                <input type="text" id="country" value="US">
+            </div>
+        </div>
+        
+        <div class="btn-group">
+            <button class="btn btn-primary" onclick="saveSettings()">💾 Save Settings</button>
+            <button class="btn btn-primary" onclick="saveSettings()">💾 Save Settings</button>
+            <button class="btn btn-secondary" onclick="window.location.href='/'">🏠 Back to Home</button>
+        </div>
+    </div>
+
+    <script>
+        function loadSettings() {
+            const savedSettings = localStorage.getItem('settings');
+            if (savedSettings) {
+                const settings = JSON.parse(savedSettings);
+                for (const [key, value] of Object.entries(settings)) {
+                    const element = document.getElementById(key);
+                    if (element) element.value = value;
+                }
+            }
+        }
+
+        function saveSettings() {
+            const settings = {
+                api_key: document.getElementById('api_key').value.trim() || 'HRKU-dbedf9a3-6946-4206-a197-be6cf5766a40',
+                proxy: document.getElementById('proxy').value.trim(),
+                first_name: document.getElementById('first_name').value.trim(),
+                last_name: document.getElementById('last_name').value.trim(),
+                line1: document.getElementById('line1').value.trim(),
+                city: document.getElementById('city').value.trim(),
+                state: document.getElementById('state').value.trim(),
+                postal_code: document.getElementById('postal_code').value.trim(),
+                country: document.getElementById('country').value.trim()
+            };
+
+            localStorage.setItem('settings', JSON.stringify(settings));
+            alert('Settings saved successfully!');
+            window.location.href = '/';
         }
 
         document.addEventListener('DOMContentLoaded', loadSettings);
@@ -614,6 +634,10 @@ async def heroku(cc, api_key, proxy=None, first_name=None, last_name=None, line1
 async def index(request: Request):
     return HTMLResponse(content=HTML_TEMPLATE)
 
+@app.get("/settings", response_class=HTMLResponse)
+async def settings(request: Request):
+    return HTMLResponse(content=SETTINGS_TEMPLATE)
+
 @app.post("/check_cc")
 async def check_cc(request: Request):
     try:
@@ -622,11 +646,7 @@ async def check_cc(request: Request):
         settings = data.get('settings', {})
         
         if not settings.get('api_key'):
-            return {
-                "status": "error",
-                "message": "API key is required",
-                "timestamp": datetime.now().strftime('%H:%M:%S')
-            }
+            settings['api_key'] = 'HRKU-dbedf9a3-6946-4206-a197-be6cf5766a40'
 
         result = await heroku(
             cc,
