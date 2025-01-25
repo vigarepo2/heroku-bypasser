@@ -305,7 +305,7 @@ HTML_TEMPLATE = '''
             <button class="btn btn-warning" onclick="clearNonSuccess()">🧹 Clear Non-Live</button>
         </div>
 
-        <div class="settings-panel" id="settingsForm">
+        <div class="settings-panel" id="settingsPanel">
             <div class="grid">
                 <div class="input-group">
                     <label>API Key (Required)</label>
@@ -356,45 +356,27 @@ HTML_TEMPLATE = '''
         let stats = { total: 0, live: 0, decline: 0 };
 
         function loadSettings() {
-            const savedSettings = sessionStorage.getItem('settings');
+            const savedSettings = localStorage.getItem('settings');
             if (savedSettings) {
                 settings = JSON.parse(savedSettings);
-            } else {
-                // Set default values
-                settings = {
-                    api_key: '',
-                    proxy: '',
-                    first_name: 'John',
-                    last_name: 'Wick',
-                    line1: '2758 Cemetery Street',
-                    city: 'New York',
-                    state: 'NY',
-                    postal_code: '10080',
-                    country: 'US'
-                };
-                sessionStorage.setItem('settings', JSON.stringify(settings));
+                for (const [key, value] of Object.entries(settings)) {
+                    const element = document.getElementById(key);
+                    if (element) element.value = value;
+                }
             }
-            
-            // Populate form fields
-            for (const [key, value] of Object.entries(settings)) {
-                const element = document.getElementById(key);
-                if (element) element.value = value;
-            }
-        }
-
-        function updateStats() {
-            document.getElementById('totalCount').textContent = stats.total;
-            document.getElementById('liveCount').textContent = stats.live;
-            document.getElementById('declineCount').textContent = stats.decline;
         }
 
         function toggleSettings() {
-            const form = document.getElementById('settingsForm');
-            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+            const panel = document.getElementById('settingsPanel');
+            if (panel.style.display === 'none' || !panel.style.display) {
+                panel.style.display = 'block';
+            } else {
+                panel.style.display = 'none';
+            }
         }
 
         function saveSettings() {
-            settings = {
+            const settingsData = {
                 api_key: document.getElementById('api_key').value.trim(),
                 proxy: document.getElementById('proxy').value.trim(),
                 first_name: document.getElementById('first_name').value.trim(),
@@ -406,14 +388,21 @@ HTML_TEMPLATE = '''
                 country: document.getElementById('country').value.trim()
             };
 
-            if (!settings.api_key) {
+            if (!settingsData.api_key) {
                 alert('API key is required!');
                 return;
             }
 
-            sessionStorage.setItem('settings', JSON.stringify(settings));
+            localStorage.setItem('settings', JSON.stringify(settingsData));
+            settings = settingsData;
             alert('Settings saved successfully!');
             toggleSettings();
+        }
+
+        function updateStats() {
+            document.getElementById('totalCount').textContent = stats.total;
+            document.getElementById('liveCount').textContent = stats.live;
+            document.getElementById('declineCount').textContent = stats.decline;
         }
 
         function clearNonSuccess() {
@@ -455,16 +444,8 @@ HTML_TEMPLATE = '''
         }
 
         async function submitForm() {
-            const savedSettings = sessionStorage.getItem('settings');
-            if (!savedSettings) {
-                alert('Please configure settings with API key first!');
-                toggleSettings();
-                return;
-            }
-
-            const settings = JSON.parse(savedSettings);
             if (!settings.api_key) {
-                alert('API key is required! Please configure settings.');
+                alert('Please configure settings with API key first!');
                 toggleSettings();
                 return;
             }
@@ -670,4 +651,4 @@ async def check_cc(request: Request):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run(app, host="0.0.0.0", port=8000)
